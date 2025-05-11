@@ -1,39 +1,37 @@
-module Main exposing (main)
+module Main exposing (Orientation(..), dragonCurve, main)
 
--- elm install avh4/elm-color
-
-import Canvas exposing (..)
-import Canvas.Settings exposing (..)
+import Canvas exposing (PathSegment, Point, Shape)
+import Canvas.Settings
 import Color
 import Html exposing (Html)
-import Html.Attributes exposing (style)
+import Html.Attributes
+
+
+main : Html msg
+main =
+    view
 
 
 view : Html msg
 view =
     let
+        width : number
         width =
-            500
+            50
 
+        height : number
         height =
-            300
+            50
     in
     Canvas.toHtml ( width, height )
-        [ style "border" "1px solid black"
-        , style "display" "block"
+        [ Html.Attributes.style "border" "1px solid black"
+        , Html.Attributes.style "display" "block"
         ]
-        [ shapes [ fill Color.white ] [ rect ( 0, 0 ) width height ]
-        , renderSquare
+        [ Canvas.clear ( 0, 0 ) width height
+        , Canvas.shapes
+            [ Canvas.Settings.stroke Color.black ]
+            [ dragonCurveLines ( 25, 25 ) ]
         ]
-
-
-renderSquare =
-    shapes [ fill (Color.rgba 0 0 0 1) ]
-        [ rect ( 0, 0 ) 100 50 ]
-
-
-main =
-    view
 
 
 type Turn
@@ -41,6 +39,44 @@ type Turn
     | Right
 
 
+type Orientation
+    = North
+    | South
+    | East
+    | West
+
+
+type alias Turtle =
+    { orientation : Orientation
+    , location : Point
+    }
+
+
+type alias Dragon =
+    ( Turtle, List PathSegment ) -> ( Turtle, List PathSegment )
+
+
+dragonCurveLines : Point -> Shape
+dragonCurveLines start =
+    dragonCurve
+        ( { location = start
+          , orientation = South
+          }
+        , []
+        )
+        |> Tuple.second
+        |> List.reverse
+        |> Canvas.path start
+
+
+dragonCurve : Dragon
+dragonCurve s =
+    s
+        |> draw
+        |> a 7
+
+
+a : Int -> Dragon
 a n s =
     if n <= 0 then
         s
@@ -55,6 +91,7 @@ a n s =
             |> turn Right
 
 
+b : Int -> Dragon
 b n s =
     if n <= 0 then
         s
@@ -67,3 +104,67 @@ b n s =
             |> a (n - 1)
             |> turn Left
             |> b (n - 1)
+
+
+turn : Turn -> Dragon
+turn direction ( turtle, segments ) =
+    let
+        newOrientation =
+            case ( direction, turtle.orientation ) of
+                ( Left, North ) ->
+                    West
+
+                ( Left, West ) ->
+                    South
+
+                ( Left, South ) ->
+                    East
+
+                ( Left, East ) ->
+                    North
+
+                ( Right, North ) ->
+                    East
+
+                ( Right, East ) ->
+                    South
+
+                ( Right, South ) ->
+                    West
+
+                ( Right, West ) ->
+                    North
+    in
+    ( { turtle | orientation = newOrientation }
+    , segments
+    )
+
+
+draw : Dragon
+draw ( turtle, segments ) =
+    let
+        startingLocation =
+            turtle.location
+
+        endingLocation =
+            travel turtle.orientation startingLocation
+    in
+    ( { turtle | location = endingLocation }
+    , Canvas.lineTo endingLocation :: segments
+    )
+
+
+travel : Orientation -> Point -> Point
+travel orientation ( x, y ) =
+    case orientation of
+        North ->
+            ( x, y + 1 )
+
+        South ->
+            ( x, y - 1 )
+
+        East ->
+            ( x + 1, y )
+
+        West ->
+            ( x - 1, y )
