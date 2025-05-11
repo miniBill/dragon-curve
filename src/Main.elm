@@ -34,3 +34,36 @@ renderSquare =
 
 main =
     view
+
+
+type Turn
+    = Left
+    | Right
+
+
+a n s =
+    if n <= 0 then
+        s
+            |> draw
+
+    else
+        s
+            |> a (n - 1)
+            |> turn Right
+            |> b (n - 1)
+            |> draw
+            |> turn Right
+
+
+b n s =
+    if n <= 0 then
+        s
+            |> draw
+
+    else
+        s
+            |> turn Left
+            |> draw
+            |> a (n - 1)
+            |> turn Left
+            |> b (n - 1)
