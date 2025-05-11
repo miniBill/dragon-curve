@@ -17,11 +17,11 @@ view =
     let
         width : number
         width =
-            50
+            500
 
         height : number
         height =
-            50
+            500
     in
     Canvas.toHtml ( width, height )
         [ Html.Attributes.style "border" "1px solid black"
@@ -30,7 +30,7 @@ view =
         [ Canvas.clear ( 0, 0 ) width height
         , Canvas.shapes
             [ Canvas.Settings.stroke Color.black ]
-            [ dragonCurveLines ( 25, 25 ) ]
+            [ dragonCurveLines ( 250, 250 ) ]
         ]
 
 
@@ -73,7 +73,7 @@ dragonCurve : Dragon
 dragonCurve s =
     s
         |> draw
-        |> a 7
+        |> a 12
 
 
 a : Int -> Dragon
@@ -156,15 +156,19 @@ draw ( turtle, segments ) =
 
 travel : Orientation -> Point -> Point
 travel orientation ( x, y ) =
+    let
+        length =
+            1
+    in
     case orientation of
         North ->
-            ( x, y + 1 )
+            ( x, y + length )
 
         South ->
-            ( x, y - 1 )
+            ( x, y - length )
 
         East ->
-            ( x + 1, y )
+            ( x + length, y )
 
         West ->
-            ( x - 1, y )
+            ( x - length, y )
